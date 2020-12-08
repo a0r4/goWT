@@ -20,13 +20,13 @@ func main() {
 	var attackType, jwtToken, wordlist string
 
 	flag.StringVar(&jwtToken, "jwt", "", "Set jwt token (*)")
-	flag.StringVar(&attackType, "attackType", "noneAlg", "Select attack type: noneAlg, dictionary")
+	flag.StringVar(&attackType, "attackType", "noneAlg", "Select attack type: noneAlg, dictionary, showJwt")
 	flag.StringVar(&wordlist, "wordlist", "", "Set dictionary path")
 
 	flag.Parse()
 
 	if (jwtToken == "") {
-		r.Println("JWT parameter must be set")
+		r.Println("Jwt parameter must be set")
 		flag.PrintDefaults()
 		return
 	}
@@ -35,6 +35,8 @@ func main() {
 		case "dictionary":
 			dictionaryAttack(jwtToken, wordlist)
 			break
+		case "showJwt":
+			showJwt(jwtToken)
 		default:
 			noneAlgAttack(jwtToken)
 			break
@@ -116,7 +118,14 @@ func signToken(claims jwt.MapClaims, secret string, alg jwt.SigningMethod) {
 	m.Println(newToken)
 }
 
-func showToken(headers map[string]interface{}, claims jwt.MapClaims, valid bool) {
+func showJwt(jwtToken string) {
+	_, headers, claims, valid, err := parseToken(jwtToken, "")
+
+	if (err != nil){
+		r.Println("Token was not parsed: ", err.Error())
+		return
+	}
+
 	c.Println("***** Headers *****")
 	for k,v := range headers {
 		m.Println(k + ":", v)
