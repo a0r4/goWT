@@ -7,6 +7,7 @@ import (
 	"flag"
 	"github.com/fatih/color"
 	"github.com/dgrijalva/jwt-go"
+	"encoding/json"
 )
 
 var parser jwt.Parser
@@ -17,11 +18,12 @@ var c = color.New(color.FgCyan)
 var m = color.New(color.FgMagenta)
 
 func main() {
-	var attackType, jwtToken, wordlist string
+	var attackType, jwtToken, wordlist, claims string
 
 	flag.StringVar(&jwtToken, "jwt", "", "Set jwt token (*)")
 	flag.StringVar(&attackType, "attackType", "noneAlg", "Select attack type: noneAlg, dictionary, showJwt")
 	flag.StringVar(&wordlist, "wordlist", "", "Set dictionary path")
+	flag.StringVar(&claims, "claims", "", "Set claims that want to update or insert (?)")
 
 	flag.Parse()
 
@@ -38,20 +40,24 @@ func main() {
 		case "showJwt":
 			showJwt(jwtToken)
 		default:
-			noneAlgAttack(jwtToken)
+			noneAlgAttack(jwtToken,claims)
 			break
 	}
 }
 
-func noneAlgAttack(jwtToken string) {
-	_, _, claims, _, err := parseToken(jwtToken, "")
+func noneAlgAttack(jwtToken string, claims string) {
+	_, _, _claims, _, err := parseToken(jwtToken, "")
 
 	if (err != nil){
 		r.Println("Token was not parsed: ", err.Error())
 		return
 	}
 
-	signToken(claims, "", jwt.SigningMethodNone)
+	if (claims != "") {
+		json.Unmarshal([]byte(claims), &_claims)
+	}
+
+	signToken(_claims, "", jwt.SigningMethodNone)
 }
 
 func dictionaryAttack(jwtToken string, wordlist string)  {
