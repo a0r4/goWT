@@ -1,3 +1,5 @@
+![alt text](https://github.com/a0r4/goWT/blob/master/goWT.png)
+
 # goWT
 Some situation of usage JWT token could cause to be vulnerabilities. Most popular scenarios:
 - "none" Algorithm usage
