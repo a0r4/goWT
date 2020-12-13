@@ -2,7 +2,6 @@
 Some situation of usage JWT token could cause to be vulnerabilities. Most popular scenarios:
 - "none" Algorithm usage
 - Weak key usage for Token signing
-- Support multiple signiture methods (RSA-HMAC) (**Feature**)
 
 More detail about this topic visit [auth0 blog](https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/)
 
