@@ -55,8 +55,6 @@ func bruteForceAttack(jwtToken string, passMaxLength int, alphabet string)  {
 	for secret := range generateSecret(alphabet, passMaxLength) {
 		_, _, _, valid, err := parseToken(jwtToken, secret)
 
-		fmt.Println("Password:", secret)
-
 		if (valid || err.Error() == "Token is expired") {
 			fmt.Println("Password:", secret)
 		}
@@ -70,8 +68,6 @@ func generateSecret(alphabet string, length int) <- chan string {
 		defer close(c) 
 		addCharacter(c, "", alphabet, length) 
 	}(c)
-
-	fmt.Println(<-c)
 
 	return c 
 }
