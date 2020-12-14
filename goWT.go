@@ -89,7 +89,6 @@ func addCharacter(c chan string, combined string, alphabet string, length int) {
 	}	
 }
 
-
 func noneAlgAttack(jwtToken string, claims string) {
 	_, _, _claims, _, err := parseToken(jwtToken, "")
 

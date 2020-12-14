@@ -20,3 +20,5 @@ go buid goWT.go
 `./goWT -jwt $JWT_TOKEN -attackType dictionary -wordlist $FILE_PATH : Try to find JWT Token's secret with provided wordlist`
 <br>
 `./goWT -jwt $JWT_TOKEN -attackType showJwt : Decode and show JWT Token's part`
+<br>
+`./goWT -jwt $JWT_TOKEN -attackType bruteForce -alphabet $CHARACTERS -passMaxLength $LENGTH : Try to find JWT Token's secret with brute force attack`
