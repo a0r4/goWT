@@ -15,7 +15,7 @@ go buid goWT.go
 ```
 
 # usage
-`./goWt -jwt $JWT_TOKEN -attackType noneAlg : Change JWT Token's algorithm as "none"` 
+`./goWt -jwt $JWT_TOKEN -attackType noneAlg -claims '{"$claim_key":"$claim_value"}' : Change JWT Token's algorithm as "none" and update or insert claims` 
 <br>
 `./goWT -jwt $JWT_TOKEN -attackType dictionary -wordlist $FILE_PATH : Try to find JWT Token's secret with provided wordlist`
 <br>
