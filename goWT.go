@@ -3,11 +3,12 @@ package main
 import (
 	"os"
 	"fmt"
-	"bufio"
 	"flag"
+	"bufio"
+	"encoding/json"
+	
 	"github.com/fatih/color"
 	"github.com/dgrijalva/jwt-go"
-	"encoding/json"
 )
 
 var parser jwt.Parser
@@ -39,15 +40,12 @@ func main() {
 	switch attackType {
 		case "dictionary":
 			dictionaryAttack(jwtToken, wordlist)
-			break
 		case "noneAlg":
 			noneAlgAttack(jwtToken,claims)
-			break
 		case "bruteForce":
 			bruteForceAttack(jwtToken, passMaxLength, alphabet)
 		default:
 			showJwt(jwtToken)
-			break
 	}
 }
 
