@@ -10,7 +10,7 @@ More detail about this topic visit [auth0 blog](https://auth0.com/blog/critical-
 # build
 ```bash
 git clone https://github.com/a0r4/goWT.git
-cd goWT-master
+cd goWT
 go buid goWT.go
 ```
 
